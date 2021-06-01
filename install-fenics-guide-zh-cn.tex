@@ -3,7 +3,9 @@
 \usepackage[margin=2.4cm]{geometry}
 \usepackage{listings}
 \usepackage{xcolor}
-\usepackage[pdfpagelayout=SinglePage,colorlinks]{hyperref}
+\usepackage{fontawesome5}
+\usepackage[pdfpagelayout=SinglePage]{hyperref}
+\usepackage[os=win,hyperrefcolorlinks]{menukeys}
 
 \ctexset{
   section/format = \Large\bfseries\raggedright,
@@ -31,6 +33,9 @@
   \BeginAccSupp{ActualText={}}#1\EndAccSupp{}%
 }
 
+\renewmenumacro{\menu}[>]{angularmenus}
+\renewmenumacro{\keys}[+]{shadowedroundedkeys}
+
 \title{\bfseries 一份简短的关于 FEniCS 安装的介绍%
   \thanks{\url{https://github.com/OsbertWang/install-fenics-guide-zh-cn}}%
 }
@@ -45,7 +50,7 @@
 \maketitle
 
 \begin{abstract}
-  本文记录了我在 WSL 的 Ubuntu 下安装 FEniCS 的经历.
+  本文记录了我在 WSL 的 Ubuntu 20.04 下安装 FEniCS 的经历.
   本人 Ubuntu 使用经验并不丰富,
   因此很可能会有记录错误的地方,
   希望可以得到行家里手的批评指正.
@@ -54,12 +59,153 @@
   本文将在 FEniCS-X 发布稳定版本后再更新相关内容.
 \end{abstract}
 
+\section{安装 WSL}
+
+网上已经有很多安装 WSL 的教程,
+例如%
+\href{https://docs.microsoft.com/zh-cn/windows/wsl/install-win10}{微软的文档}.
+注意到部分 WSL2 用户反馈,
+启动时提示``参考的对象类型不支持尝试的操作'',
+在网上有一种流行的解决方案是
+\begin{itemize}
+  \item 下载软件 \href{https://www.proxifier.com/tmp/Test20200228/NoLsp.exe}{NoLsp.exe};
+  \item Powershell 管理员权限运行 (注意 Nolsp.exe 的位置)
+  \begin{lstlisting}[gobble=4]
+    .\NoLsp.exe C:\windows\system32\wsl.exe  
+  \end{lstlisting}
+\end{itemize}
+若有更好的解决方案,
+还请告知于我.
+
+\section{选择编辑器}
+
+WSL 是完全使用命令行的子系统,
+默认可以使用 vim,
+但是 vim 的用法和 Windows 上很多编辑器不同,
+因此无疑对用户造成了困难.
+
+在这里,
+我使用
+\href{https://code.visualstudio.com/}{VSCode}
+这个编辑器.
+在 Windows 10 内安装并打开它,
+使用快捷键 \keys{Ctrl + Shift + X} 打开 \textsf{Extensions (扩展)},
+找到 \textsf{Remote - WSL} 并安装.
+这样便可以直接在 WSL 中打开文档.
+
+另外 VSCode 还有简体中文翻译扩展 \textsf{Chinese (Simplified) Language Pack for Visual Studio Code},
+一定程度上避免了一些用户英语阅读不畅的问题.
+
 \section{更换 Ubuntu 源}
+
+从本节开始,
+有关命令行的操作,
+在未特殊声明的情况下,
+全部为 WSL 终端中的操作.
 
 鉴于中国大陆地区网络状况的特性,
 强烈推荐用户安装 FEniCS 前更改 Ubuntu 的源.
 在这里,
 我使用%
 \href{https://mirrors.tuna.tsinghua.edu.cn/help/ubuntu/}{清华大学镜像}.
+当然还有其他镜像,
+例如%
+\href{https://mirrors.ustc.edu.cn/help/ubuntu.html}{中国科技大学镜像}.
+
+在终端中执行
+\begin{lstlisting}[language = bash]
+  sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+\end{lstlisting}
+备份 \textsf{sources.list} 文件.
+接下来执行
+\begin{lstlisting}[language = bash]
+  cp /etc/apt/sources.list ~/sources.list
+\end{lstlisting}
+复制一份 \textsf{sources.list} 到用户文件夹.
+\begin{lstlisting}[language = bash]
+  code ~/sources.list
+\end{lstlisting}
+打开文件,
+将文件替换为以下内容
+\begin{lstlisting}
+  # 默认注释了源码镜像以提高 apt update 速度, 如有需要可自行取消注释
+  deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse
+  # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal main restricted universe multiverse
+  deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse
+  # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-updates main restricted universe multiverse
+  deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse
+  # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-backports main restricted universe multiverse
+  deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse
+  # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-security main restricted universe multiverse
+  
+  # 预发布软件源, 不建议启用
+  # deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-proposed main restricted universe multiverse
+  # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ focal-proposed main restricted universe multiverse
+\end{lstlisting}
+然后执行
+\begin{lstlisting}[language = bash]
+  sudo cp ~/sources.list /etc/apt/sources.list
+\end{lstlisting}
+替换原始的 \textsf{sources.list} 文件.
+之后执行
+\begin{lstlisting}[language=bash]
+  sudo apt update && sudo apt upgrade
+\end{lstlisting}
+换源并更新.
+若更改错误,
+可执行
+\begin{lstlisting}[language=bash]
+  sudo cp /etc/apt/sources.list.bak /etc/apt/sources.list
+\end{lstlisting}
+恢复文件.
+
+\section{添加 PPA}
+
+在终端中执行
+\begin{lstlisting}[language = bash]
+  sudo add-apt-repository ppa:fenics-packages/fenics
+\end{lstlisting}
+鉴于网络原因,
+直接从 PPA 下载容易丢内容.
+这里介绍中科大的\href{https://lug.ustc.edu.cn/wiki/mirrors/help/revproxy/}{反向镜像},
+将
+\begin{lstlisting}[language = bash]
+  /etc/apt/sources.list.d/
+\end{lstlisting}
+中文件的内容
+\begin{lstlisting}
+  http(s)://ppa.launchpad.net
+\end{lstlisting}
+改为
+\begin{lstlisting}
+  https://launchpad.proxy.ustclug.org
+\end{lstlisting}
+而后再
+\begin{lstlisting}[language = bash]
+  sudo apt update
+\end{lstlisting}
+即完成添加 PPA 的操作.
+
+\section{安装 FEniCS}
+
+在终端中执行
+\begin{lstlisting}[language = bash]
+  sudo apt install build-essential
+\end{lstlisting}
+为后续做准备.
+接下来执行
+\begin{lstlisting}[language = bash]
+  sudo apt install fenics
+\end{lstlisting}
+即可开始安装.
+
+\section{测试安装}
+
+在终端中执行
+\begin{lstlisting}[language = bash]
+  python3 -c 'import fenics'
+\end{lstlisting}
+若没有任何报错提示,
+则说明安装成功.
 
 \end{document}
