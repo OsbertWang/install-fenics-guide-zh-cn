@@ -1,0 +1,65 @@
+\documentclass[fontset=founder]{ctexart}
+\usepackage{accsupp}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[pdfpagelayout=SinglePage,colorlinks]{hyperref}
+
+\ctexset{
+  section/format = \Large\bfseries\raggedright,
+}
+
+\lstset{
+  backgroundcolor = \color{lightgray!30},
+  keywordstyle    = \color{blue},
+  stringstyle     = \color{brown},
+  basicstyle      = {\small\ttfamily},
+  breaklines      = true,
+  tabsize         = 4,
+  gobble          = 2,
+  numbers         = left,
+  numberstyle     = \tiny\emptyaccsupp,
+  frame           = single,
+  xleftmargin     = \ccwd,
+  numbersep       = \ccwd,
+  columns         = fullflexible,
+%  emphstyle       = {\color{blue}\small\ttfamily},
+%  emph            = {mkdir,rmdir,sudo,mount,umount,rm},
+}
+
+\newcommand\emptyaccsupp[1]{%
+  \BeginAccSupp{ActualText={}}#1\EndAccSupp{}%
+}
+
+\title{\bfseries 一份简短的关于 FEniCS 安装的介绍%
+  \thanks{\url{https://github.com/OsbertWang/install-fenics-guide-zh-cn}}%
+}
+\author{王然%
+  \thanks{\href{mailto:ranwang.osbert@outlook.com}%
+    {\ttfamily ranwang.osbert@outlook.com}}%
+}
+\date{\today}
+
+\begin{document}
+  
+\maketitle
+
+\begin{abstract}
+  本文记录了我在 WSL 的 Ubuntu 下安装 FEniCS 的经历.
+  本人 Ubuntu 使用经验并不丰富,
+  因此很可能会有记录错误的地方,
+  希望可以得到行家里手的批评指正.
+  另外 FEniCS 现已停止开发,
+  其后续版本 FEniCS-X 还未稳定.
+  本文将在 FEniCS-X 发布稳定版本后再更新相关内容.
+\end{abstract}
+
+\section{更换 Ubuntu 源}
+
+鉴于中国大陆地区网络状况的特性,
+强烈推荐用户安装 FEniCS 前更改 Ubuntu 的源.
+在这里,
+我使用%
+\href{https://mirrors.tuna.tsinghua.edu.cn/help/ubuntu/}{清华大学镜像}.
+
+\end{document}
