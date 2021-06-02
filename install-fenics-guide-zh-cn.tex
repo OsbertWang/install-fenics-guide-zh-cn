@@ -168,19 +168,25 @@ WSL 是完全使用命令行的子系统,
 鉴于网络原因,
 直接从 PPA 下载容易丢内容.
 这里介绍中科大的\href{https://lug.ustc.edu.cn/wiki/mirrors/help/revproxy/}{反向镜像},
-将
+将 \textsf{fenics-packages-ubuntu-fenics-focal.list} 备份
 \begin{lstlisting}[language = bash]
-  /etc/apt/sources.list.d/
+  sudo cp /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-focal.list /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-focal.list.bak
 \end{lstlisting}
-中文件的内容
+接下来复制到用户文件夹
+\begin{lstlisting}[language = bash]
+  cp /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-focal.list ~/fenics-packages-ubuntu-fenics-focal.list
+\end{lstlisting}
+打开文件,
+将原始文件改为
 \begin{lstlisting}
-  http(s)://ppa.launchpad.net
+  deb https://launchpad.proxy.ustclug.org/fenics-packages/fenics/ubuntu focal main
+  # deb-src https://launchpad.proxy.ustclug.org/fenics-packages/fenics/ubuntu focal main
 \end{lstlisting}
-改为
-\begin{lstlisting}
-  https://launchpad.proxy.ustclug.org
+而后再替换原文件
+\begin{lstlisting}[language = bash]
+  sudo cp ~/fenics-packages-ubuntu-fenics-focal.list /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-focal.list
 \end{lstlisting}
-而后再
+最后再更新
 \begin{lstlisting}[language = bash]
   sudo apt update
 \end{lstlisting}
