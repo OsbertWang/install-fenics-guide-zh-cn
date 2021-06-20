@@ -86,14 +86,26 @@ WSL 是完全使用命令行的子系统,
 
 在这里,
 我使用
-\href{https://code.visualstudio.com/}{VSCode}
+\href{https://code.visualstudio.com/}{VS Code}
 这个编辑器.
+注意安装后要检查环境变量.
+在 \textsf{cmd} 中执行
+\begin{lstlisting}
+  echo %path:;=&echo.%
+\end{lstlisting}
+可以列出目前可用的环境变量,
+如果结果中包含
+\begin{lstlisting}
+  ...\Microsoft VS Code\bin\
+\end{lstlisting}
+就说明我们安装成功,
+否则我们需要手动将其添加到环境变量中.
 在 Windows 10 内安装并打开它,
 使用快捷键 \keys{Ctrl + Shift + X} 打开 \textsf{Extensions (扩展)},
 找到 \textsf{Remote - WSL} 并安装.
 这样便可以直接在 WSL 中打开文档.
 
-另外 VSCode 还有简体中文翻译扩展 \textsf{Chinese (Simplified) Language Pack for Visual Studio Code},
+另外 VS Code 还有简体中文翻译扩展 \textsf{Chinese (Simplified) Language Pack for Visual Studio Code},
 一定程度上避免了一些用户英语阅读不畅的问题.
 
 \section{更换 Ubuntu 源}
