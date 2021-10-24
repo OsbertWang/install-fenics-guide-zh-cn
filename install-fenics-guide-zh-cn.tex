@@ -1,4 +1,4 @@
-\documentclass[fontset=founder]{ctexart}
+\documentclass[fontset=founder]{ctexrep}
 \usepackage{accsupp}
 \usepackage[margin=2.4cm]{geometry}
 \usepackage{listings}
@@ -50,6 +50,7 @@
 \maketitle
 
 \begin{abstract}
+  
   本文记录了我在 WSL 的 Ubuntu 20.04 下安装 FEniCS 的经历.
   本人 Ubuntu 使用经验并不丰富,
   因此很可能会有记录错误的地方,
@@ -57,9 +58,16 @@
   另外 FEniCS 现已停止开发,
   其后续版本 FEniCS-X 还未稳定.
   本文将在 FEniCS-X 发布稳定版本后再更新相关内容.
+  
+  2021年10月,
+  我尝试安装 \href{https://www.docker.com/get-started}{Docker}.
+  因此将本文拆解为两部分,
+  补充了 Docker 下安装 FEniCS 的步骤.
 \end{abstract}
 
-\section{安装 WSL}
+\chapter{Windows Subsysterm fo Linux}
+
+\section{安装 WSL}\label{sec:wsl.install}
 
 网上已经有很多安装 WSL 的教程,
 例如%
@@ -73,6 +81,8 @@
   \begin{lstlisting}[gobble=4]
     .\NoLsp.exe C:\windows\system32\wsl.exe  
   \end{lstlisting}
+  \item 如过上述链接无法下载,
+  请访问\href{https://cowtransfer.com/s/626f2c73fc7a4f}{这里}下载.
 \end{itemize}
 若有更好的解决方案,
 还请告知于我.
@@ -244,5 +254,49 @@ WSL 是完全使用命令行的子系统,
 用户还可以阅读
 \href{https://fenicsproject.org/olddocs/dolfin/latest/python/demos.html}{Demos}
 来学习部分用法.
+
+\chapter{Docker}
+
+\section{安装 WSL2}
+
+对于 Windows 10 家庭版用户,
+使用 Docker 前需要安装 WSL2.
+具体步骤可以参考第 \ref{sec:wsl.install} 节.
+非 Windows 10 家庭版用户可以越过此步骤.
+
+\section{安装 Docker}
+
+在安装完 WSL2 后,
+用户可以下载 \href{https://www.docker.com/get-started}{Docker 桌面版}.
+安装并重启,
+将开启 Docker 教学环节.
+注意,
+在目前的 Windows 版本中,
+Docker 默认不能改变安装路径.
+
+\section{安装 FEniCS}
+
+打开 \textsf{cmd} 或者 \textsf{PowerShell},
+进入打算安装 FEniCS 的路径中.
+接下来执行
+\begin{lstlisting}[language=bash]
+  docker pull quay.io/fenicsproject/stable:latest
+\end{lstlisting}
+等待系统执行完毕即可.
+
+\section{打开 FEniCS 的环境}
+
+依旧在 \textsf{cmd} 或者 \textsf{PowerShell} 中,
+执行
+\begin{lstlisting}[language=bash]
+  docker run -ti quay.io/fenicsproject/stable:latest
+\end{lstlisting}
+系统最终将返回类似
+\begin{lstlisting}
+  fenics@d66e6f16a673:~$
+\end{lstlisting}
+的结果,
+这就表明用户已经进入了 FEniCS 的环境,
+也就表明我们的安装已经成功.
 
 \end{document}
