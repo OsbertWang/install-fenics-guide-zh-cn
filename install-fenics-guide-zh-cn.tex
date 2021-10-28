@@ -128,7 +128,7 @@ WSL 是完全使用命令行的子系统,
 另外 VS Code 还有简体中文翻译扩展 \textsf{Chinese (Simplified) Language Pack for Visual Studio Code},
 一定程度上避免了一些用户英语阅读不畅的问题.
 
-\section{更换 Ubuntu 源}
+\section{更换 Ubuntu 源}\label{sec:source}
 
 从本节开始,
 有关命令行的操作,
@@ -459,9 +459,48 @@ FEniCS 团队预构建了 FEniCSx 的 \href{https://hub.docker.com/r/dolfinx/dol
 进入容器,
 在 \texttt{shared} 文件夹中执行
 \begin{lstlisting}
-  python3 demo.py
+  python3 demo_poisson.py
 \end{lstlisting}
 编译文件.
+
+\section{安装 pyvista}
+
+上面的例子运行后,
+系统会出现
+\begin{lstlisting}
+  pyvista is required to visualise the solution
+\end{lstlisting}
+这是因为 \texttt{pyvista} 没有安装成功.
+根据 \href{https://fenicsproject.discourse.group/t/how-to-use-pyvista-in-docker-for-windows-10-user/6921}{fenicsproject.discourse.group} 的回答,
+简述安装 pyvista 的过程.
+
+首先换源.
+将 \texttt{sources.list} 复制到 \texttt{shared} 文件夹
+\begin{lstlisting}
+  cp /etc/apt/sources.list ~/shared/sources.list
+\end{lstlisting}
+然后在 \texttt{D:\textbackslash work-fenicsx} 中更改 \texttt{sources.list} 内容,
+见第 \ref{sec:source} 节.
+改后的文件复制回去
+\begin{lstlisting}
+  cp ~/shared/sources.list /etc/apt/sources.list
+\end{lstlisting}
+
+下面开始安装,
+依次执行
+\begin{lstlisting}
+  export PYVISTA_OFF_SCREEN=true
+  apt-get update
+  apt-get install -y --no-install-recommends libgl1-mesa-dev xvfb
+  pip3 install pyvista
+\end{lstlisting}
+即可安装完成.
+如果论坛所说,
+再次执行
+\begin{lstlisting}
+  python3 demo_poisson.py
+\end{lstlisting}
+将得到 \texttt{u.png} 文件.
 
 \section{文献资料}
 
