@@ -51,23 +51,31 @@
 
 \begin{abstract}
   
-  本文记录了我在 WSL 的 Ubuntu 20.04 下安装 FEniCS 的经历.
-  本人 Ubuntu 使用经验并不丰富,
-  因此很可能会有记录错误的地方,
-  希望可以得到行家里手的批评指正.
-  另外 FEniCS 现已停止开发,
-  其后续版本 FEniCS-X 还未稳定.
-  本文将在 FEniCS-X 发布稳定版本后再更新相关内容.
+  本文记录了我安装 FEniCS 的经历.
   
-  2021年10月,
+  最开始,
+  我将 FEniCS 安装在 WSL 的 Ubuntu 20.04 下.
+  本人 Ubuntu 使用经验并不丰富,
+  因此很可能会有记录错误的地方.
+  另外 FEniCS 现已停止开发,
+  其后续版本 FEniCSx 还未稳定.
+  这无疑给用户带来了不安.
+  
+  2021年10月23日,
   我尝试安装 \href{https://www.docker.com/get-started}{Docker}.
-  因此将本文拆解为两部分,
-  补充了 Docker 下安装 FEniCS 的步骤.
+  因此补充了 Docker 下安装 FEniCS 的步骤.
+  
+  而后的2021年10月28日,
+  我正式将 FEniCSx 的安装步骤写入手册.
+  根据官方的建议,
+  我只撰写了 Docker 下的安装步骤.
+  
+  希望本手册能够为用户打开方便.
 \end{abstract}
 
 \tableofcontents
 
-\chapter{Windows Subsysterm fo Linux}
+\chapter{WSL 中安装 FEniCS}
 
 \section{安装 WSL}\label{sec:wsl.install}
 
@@ -244,7 +252,7 @@ WSL 是完全使用命令行的子系统,
 \section{目前可用的入门资料}
 
 目前 FEniCS 的开发已经不再活跃,
-团队投放更多精力在开发 FEniCS-X,
+团队投放更多精力在开发 FEniCSx,
 因此 FEniCS 的入门资料也就缺乏维护.
 
 目前在 FEniCS 官网上还可以找到
@@ -257,16 +265,16 @@ WSL 是完全使用命令行的子系统,
 \href{https://fenicsproject.org/olddocs/dolfin/latest/python/demos.html}{Demos}
 来学习部分用法.
 
-\chapter{Docker}
+\chapter{Docker 中安装 FEniCS}
 
-\section{安装 WSL2}
+\section{安装 WSL2}\label{sec:install-wsl2}
 
 对于 Windows 10 家庭版用户,
 使用 Docker 前需要安装 WSL2.
 具体步骤可以参考第 \ref{sec:wsl.install} 节.
 非 Windows 10 家庭版用户可以越过此步骤.
 
-\section{安装 Docker}
+\section{安装 Docker}\label{sec:install-docker}
 
 在安装完 WSL2 后,
 用户可以下载 \href{https://www.docker.com/get-started}{Docker 桌面版}.
@@ -303,7 +311,7 @@ Docker 默认不能改变安装路径.
 也就表明我们的安装已经成功.
 这里的 \texttt{d66e6f16a673} 是此容器的 ID.
 
-\section{共享文件夹}
+\section{共享文件夹}\label{sec:shared-folder}
 
 上述步骤结束后,
 我们已经能够使用 Docker 中的 FEniCS.
@@ -340,7 +348,7 @@ Docker 默认不能改变安装路径.
 \end{lstlisting}
 可以查询所有容器的信息.
 
-\section{退出、停止、再进入甚至删除容器}
+\section{退出、停止、再进入甚至删除容器}\label{sec:handle-containder}
 
 与一般的命令行操作一样,
 在
@@ -409,6 +417,57 @@ Docker 默认不能改变安装路径.
 目前比较权威的资料是 \href{https://fenics.readthedocs.io/projects/containers/en/latest/index.html}{FEniCS Containers Document}.
 它里面包含了很多用法,
 例如 \href{https://fenics.readthedocs.io/projects/containers/en/latest/work_flows.html#run-fenics-in-a-docker-container-like-an-application}{Run FEniCS in a Docker container like an application}.
+有兴趣的用户还请认真阅读.
+
+\chapter{FEniCSx 安装}
+
+目前 FEniCS 团队已经专心维护 FEniCSx,
+而不再继续开发 FEniCS,
+因此本章将讲述如何安装 FEniCSx.
+
+\section{安装 WSL2 和 Docker}
+
+目前 FEniCS 团队推荐用户使用 Docker 安装 FEniCSx.
+这部分内容请读者参考第 \ref{sec:install-wsl2} 节和第 \ref{sec:install-docker} 节.
+
+\section{运行 FEniCSx 容器}
+
+FEniCS 团队预构建了 FEniCSx 的 \href{https://hub.docker.com/r/dolfinx/dolfinx}{Docker 镜像}.
+由于 DOLFINx 的 Docker 镜像托管在 Docker-hub.
+用户可以直接访问该镜像
+\begin{lstlisting}
+  docker run -ti -v D:/work-fenicsx:/root/shared --name fenicsx-container dolfinx/dolfinx
+\end{lstlisting}
+以上代码中,
+我将工作路径 \texttt{D:\textbackslash work-fenicsx} 设为共享路径,
+容器名称为 \texttt{fenicsx-container}.
+这些概念可以阅读第 \ref{sec:shared-folder} 节加以了解.
+
+\section{退出、停止、再进入甚至删除容器}
+
+这部分内容是 Docker 的操作,
+可以阅读第 \ref{sec:handle-containder} 节加以了解.
+注意再进入 \texttt{fenicsx-container} 容器,
+执行
+\begin{lstlisting}
+  docker exec -ti fenicsx-container /bin/bash -l
+\end{lstlisting}
+
+\section{编译文件}
+
+将 \href{https://docs.fenicsproject.org/dolfinx/main/python/_downloads/756b4617c0f8921ed14fbd158af0c99c/demo_poisson.py}{demo\_poisson.py} 下载至 \texttt{D:\textbackslash work-fenicsx},
+进入容器,
+在 \texttt{shared} 文件夹中执行
+\begin{lstlisting}
+  python3 demo.py
+\end{lstlisting}
+编译文件.
+
+\section{文献资料}
+
+有关在 Docker 中使用 FEniCSx,
+目前比较权威的资料是  \href{https://docs.fenicsproject.org/dolfinx/main/python/index.html}{DOLFINx documentation}.
+此外还有  \href{https://jorgensd.github.io/dolfinx-tutorial/index.html}{FEniCSx 教程}.
 有兴趣的用户还请认真阅读.
 
 \end{document}
