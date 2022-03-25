@@ -453,6 +453,21 @@ FEniCS 团队预构建了 FEniCSx 的 \href{https://hub.docker.com/r/dolfinx/dol
   docker exec -ti fenicsx-container /bin/bash -l
 \end{lstlisting}
 
+\section{拉取镜像}
+
+鉴于目前 FEniCSx 还处于开发状态,
+因此很多时候需要拉取镜像来使用最新的版本.
+在命令行中执行
+\begin{lstlisting}
+  docker pull dolfinx/dolfinx
+\end{lstlisting}
+系统就会拉取最新的内容到本地,
+然后执行
+\begin{lstlisting}
+  docker image list
+\end{lstlisting}
+可以看到目前本地的全部镜像的信息.
+
 \section{编译文件}
 
 将 \href{https://docs.fenicsproject.org/dolfinx/main/python/_downloads/756b4617c0f8921ed14fbd158af0c99c/demo_poisson.py}{demo\_poisson.py} 下载至 \texttt{D:\textbackslash work-fenicsx},
