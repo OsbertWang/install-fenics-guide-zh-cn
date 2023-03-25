@@ -67,8 +67,12 @@
   
   而后的2021年10月28日,
   我正式将 FEniCSx 的安装步骤写入手册.
-  根据官方的建议,
+  根据当时的官方的建议,
   我只撰写了 Docker 下的安装步骤.
+
+  2023年3月25日,
+  在 Windows 11 下的 WSL 中安装了 Ubuntu 22.04,
+  此次尝试安装 FEniCSx.
   
   希望本手册能够为用户打开方便.
 \end{abstract}
@@ -79,54 +83,76 @@
 
 \section{安装 WSL}\label{sec:wsl.install}
 
-网上已经有很多安装 WSL 的教程,
+在网上能够找到许多安装 WSL 的教程,
 例如%
-\href{https://docs.microsoft.com/zh-cn/windows/wsl/install-win10}{微软的文档}.
-注意到部分 WSL2 用户反馈,
-启动时提示``参考的对象类型不支持尝试的操作'',
-在网上有一种流行的解决方案是
-\begin{itemize}
-  \item 下载软件 \href{https://www.proxifier.com/tmp/Test20200228/NoLsp.exe}{NoLsp.exe};
-  \item Powershell 管理员权限运行 (注意 Nolsp.exe 的位置)
-  \begin{lstlisting}[gobble=4]
-    .\NoLsp.exe C:\windows\system32\wsl.exe  
-  \end{lstlisting}
-  \item 如过上述链接无法下载,
-  请访问\href{https://cowtransfer.com/s/626f2c73fc7a4f}{这里}下载.
-\end{itemize}
-若有更好的解决方案,
-还请告知于我.
+\href{https://learn.microsoft.com/zh-cn/windows/wsl/install}{微软官方文档}.
+然而,
+由于大陆网络无法自由访问备份于 \url{raw.githubusercontent.com} 的
+\href{https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json}{WSL 的 json} 文件,
+这会导致使用
+\begin{lstlisting}
+  wsl --install
+\end{lstlisting}
+直接安装失败,
+因此不得不采用另外的方案,
+例如%
+\href{https://learn.microsoft.com/zh-cn/windows/wsl/install-manual}{旧版手动安装步骤}%
+或者修改 hosts.
+
+具体而言,
+先在一些 ip 查询网站找到 \url{raw.githubusercontent.com} 对应的 ip,
+比如目前我找到的就是以下内容
+\begin{lstlisting}
+  185.199.109.133 raw.githubusercontent.com
+  185.199.111.133 raw.githubusercontent.com
+  185.199.108.133 raw.githubusercontent.com
+\end{lstlisting}
+接下来用管理员身份打开
+\begin{lstlisting}
+  C:\Windows\System32\drivers\etc\hosts
+\end{lstlisting}
+将查询到的 ip 内容添加到文件末尾.
+这时再执行
+\begin{lstlisting}
+  wsl -l -o
+\end{lstlisting}
+就可以看到当前允许安装的 WSL 发行版
+\begin{lstlisting}
+  NAME                                   FRIENDLY NAME
+  Ubuntu                                 Ubuntu
+  Debian                                 Debian GNU/Linux
+  kali-linux                             Kali Linux Rolling
+  Ubuntu-18.04                           Ubuntu 18.04 LTS
+  Ubuntu-20.04                           Ubuntu 20.04 LTS
+  Ubuntu-22.04                           Ubuntu 22.04 LTS
+  OracleLinux_8_5                        Oracle Linux 8.5
+  OracleLinux_7_9                        Oracle Linux 7.9
+  SUSE-Linux-Enterprise-Server-15-SP4    SUSE Linux Enterprise Server 15 SP4
+  openSUSE-Leap-15.4                     openSUSE Leap 15.4
+  openSUSE-Tumbleweed                    openSUSE Tumbleweed
+\end{lstlisting}
+
+% 注意到部分 WSL2 用户反馈,
+% 启动时提示``参考的对象类型不支持尝试的操作'',
+% 在网上有一种流行的解决方案是
+% \begin{itemize}
+%   \item 下载软件 \href{https://www.proxifier.com/tmp/Test20200228/NoLsp.exe}{NoLsp.exe};
+%   \item Powershell 管理员权限运行 (注意 Nolsp.exe 的位置)
+%   \begin{lstlisting}[gobble=4]
+%     .\NoLsp.exe C:\windows\system32\wsl.exe  
+%   \end{lstlisting}
+%   \item 如过上述链接无法下载,
+%   请访问\href{https://cowtransfer.com/s/626f2c73fc7a4f}{这里}下载.
+% \end{itemize}
 
 \section{选择编辑器}
 
-WSL 是完全使用命令行的子系统,
-默认可以使用 vim,
-但是 vim 的用法和 Windows 上很多编辑器不同,
-因此无疑对用户造成了困难.
-
-在这里,
-我使用
-\href{https://code.visualstudio.com/}{VS Code}
-这个编辑器.
-注意安装后要检查环境变量.
-在 \textsf{cmd} 中执行
-\begin{lstlisting}
-  echo %path:;=&echo.%
-\end{lstlisting}
-可以列出目前可用的环境变量,
-如果结果中包含
-\begin{lstlisting}
-  ...\Microsoft VS Code\bin\
-\end{lstlisting}
-就说明我们安装成功,
-否则我们需要手动将其添加到环境变量中.
-在 Windows 10 内安装并打开它,
-使用快捷键 \keys{Ctrl + Shift + X} 打开 \textsf{Extensions (扩展)},
-找到 \textsf{Remote - WSL} 并安装.
-这样便可以直接在 WSL 中打开文档.
-
-另外 VS Code 还有简体中文翻译扩展 \textsf{Chinese (Simplified) Language Pack for Visual Studio Code},
-一定程度上避免了一些用户英语阅读不畅的问题.
+目前 Windows 11 已经允许 WSL 可视化,
+但我还是更偏向于使用
+\href{https://code.visualstudio.com/}{VS Code},
+在%
+\href{https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/wsl-vscode}{微软官方文档}%
+中有详细的介绍.
 
 \section{更换 Ubuntu 源}\label{sec:source}
 
