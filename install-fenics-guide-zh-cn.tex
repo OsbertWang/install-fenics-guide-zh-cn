@@ -56,7 +56,7 @@
   最开始,
   我将 FEniCS 安装在 WSL 的 Ubuntu 20.04 下.
   本人 Ubuntu 使用经验并不丰富,
-  因此很可能会有记录错误的地方.
+  很可能会有记录错误的地方.
   另外 FEniCS 现已停止开发,
   其后续版本 FEniCSx 还未稳定.
   这无疑给用户带来了不安.
@@ -74,7 +74,7 @@
   在 Windows 11 下的 WSL 中安装了 Ubuntu 22.04,
   此次尝试安装 FEniCSx.
   
-  希望本手册能够为用户打开方便.
+  希望本手册能够方便用户使用.
 \end{abstract}
 
 \tableofcontents
@@ -130,18 +130,129 @@
   openSUSE-Tumbleweed                    openSUSE Tumbleweed
 \end{lstlisting}
 
-% 注意到部分 WSL2 用户反馈,
-% 启动时提示``参考的对象类型不支持尝试的操作'',
-% 在网上有一种流行的解决方案是
-% \begin{itemize}
-%   \item 下载软件 \href{https://www.proxifier.com/tmp/Test20200228/NoLsp.exe}{NoLsp.exe};
-%   \item Powershell 管理员权限运行 (注意 Nolsp.exe 的位置)
-%   \begin{lstlisting}[gobble=4]
-%     .\NoLsp.exe C:\windows\system32\wsl.exe  
-%   \end{lstlisting}
-%   \item 如过上述链接无法下载,
-%   请访问\href{https://cowtransfer.com/s/626f2c73fc7a4f}{这里}下载.
-% \end{itemize}
+\section{迁移 WSL 的安装位置}
+
+考虑到一部分用户的系统盘空间有限,
+且根据%
+\href{https://learn.microsoft.com/zh-cn/windows/wsl/troubleshooting?source=recommendations#installation-issues}{微软官方文档},
+WSL 只能安装在系统盘,
+因此可以考虑迁移 WSL 的安装位置到其他盘.
+本部分内容源自
+\href{https://superuser.com/questions/1701175/installing-ubuntu-on-mnt-d-with-wsl}{StackExchange}.
+方法牵扯到主系统和子系统的操作.
+
+第一步,
+建立新的位置.
+假设新位置在 \texttt{X:\textbackslash} 盘.
+在 \textsf{cmd} 中执行
+\begin{lstlisting}[language=bash]
+  wsl -l
+\end{lstlisting}
+可以查到当前已经安装的 WSL 分发,
+例如
+\begin{lstlisting}
+  适用于 Linux 的 Windows 子系统分发:
+  Ubuntu (默认)
+\end{lstlisting}
+在 \textsf{bash} 中执行
+\begin{lstlisting}[language=bash]
+  lsb_release -a
+\end{lstlisting}
+查到实际 WSL 内 Ubuntu 的版本,
+例如
+\begin{lstlisting}
+  No LSB modules are available.
+  Distributor ID: Ubuntu
+  Description:    Ubuntu 22.04.2 LTS
+  Release:        22.04
+  Codename:       jammy
+\end{lstlisting}
+然后在 \textsf{cmd} 中执行
+\begin{lstlisting}[language=bash]
+  mkdir X:\WSL\instances\Ubuntu2204
+  mkdir X:\WSL\images
+  cd X:\WSL\images
+\end{lstlisting}
+创建新的位置.
+这里起名 \texttt{Ubuntu2204} 是因为 Ubuntu 实际版本为 22.04,
+也可以起其他名字.
+
+第二步,
+导出原 WSL 分发并导入新位置.
+在 \textsf{cmd} 中执行
+\begin{lstlisting}[language=bash]
+  wsl --export Ubuntu ubuntu.tar
+  wsl --import Ubuntu2204 X:\WSL\instances\Ubuntu2204 ubuntu.tar --version 2
+\end{lstlisting}
+第一行的 \texttt{Ubuntu} 指的是系统默认的 WSL 分发,
+这条命令将原本的分发导出为一个压缩包.
+第二行的 \texttt{Ubuntu2204} 是未来指定的 WSL 分发,
+也就是将前面导出的压缩包导入成新的 WSL 分发.
+
+第三步,
+启动新的分发并且设置为默认.
+在 \textsf{cmd} 中执行
+\begin{lstlisting}[language=bash]
+  wsl ~ -d Ubuntu2204
+\end{lstlisting}
+进入 \texttt{Ubuntu2204} 分发的 WSL 系统,
+在当前 \textsf{bash} 中执行
+\begin{lstlisting}[language=bash]
+  sudo -e /etc/wsl.conf
+\end{lstlisting}
+输入以下内容
+\begin{lstlisting}
+  [user]
+  default=<your_username>
+\end{lstlisting}
+\texttt{<your\_username>} 是用户自定义的 WSL 的用户名,
+个人用了原本 \texttt{Ubuntu} 分发内的用户名.
+然后依次 \keys{\ctrl + X}, \keys{Y}, \keys{\enter} 保存退出.
+退出 \texttt{bash},
+在 \texttt{cmd} 中执行
+\begin{lstlisting}[language=bash]
+  wsl --terminate Ubuntu2204
+  wsl ~ -d Ubuntu2204
+\end{lstlisting}
+这时如果一切正常,
+就可以将 \texttt{Ubuntu2204} 设置为默认 WSL 分发,
+即在 \texttt{cmd} 中执行
+\begin{lstlisting}[language=bash]
+  wsl --set-default Ubuntu2204
+\end{lstlisting}
+这时在 \textsf{bash} 中执行
+\begin{lstlisting}[language=bash]
+  echo $WSL_DISTRO_NAME
+\end{lstlisting}
+返回结果
+\begin{lstlisting}
+  Ubuntu2204
+\end{lstlisting}
+就表明一切正常.
+
+第四步,
+删除旧分发.
+在 \textsf{cmd} 中执行
+\begin{lstlisting}[language=bash]
+  wsl --unregister Ubuntu
+\end{lstlisting}
+就将旧分发 \texttt{Ubuntu} 删除了.
+这时在 \textsf{cmd} 中执行
+\begin{lstlisting}[language=bash]
+  wsl -l
+\end{lstlisting}
+将看到
+\begin{lstlisting}
+  适用于 Linux 的 Windows 子系统分发:
+  Ubuntu2204 (默认)
+\end{lstlisting}
+
+实际上,
+将整个 WSL 的安装位置迁移还有一个好处.
+根据%
+\href{https://learn.microsoft.com/zh-cn/windows/wsl/filesystems#file-storage-and-performance-across-file-systems}{微软官方文档},
+将项目文件直接存储在 WSL 的驱动器上,
+性能速度会提高.
 
 \section{选择编辑器}
 
@@ -150,16 +261,18 @@
 \href{https://code.visualstudio.com/}{VS Code},
 在%
 \href{https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/wsl-vscode}{微软官方文档}%
-中有详细的介绍.
+中有详细的介绍,
+主要就是利用
+\href{https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack}{Remote Development}.
 
 \section{更换 Ubuntu 源}\label{sec:source}
 
 从本节开始,
 有关命令行的操作,
 在未特殊声明的情况下,
-全部为 WSL 终端中的操作.
+全部为 WSL 中 \textsf{bash} 的操作.
 
-鉴于中国大陆地区网络状况的特性,
+鉴于中国大陆地区网络特性,
 强烈推荐用户安装 FEniCSx 前更改 Ubuntu 的源.
 在这里,
 我使用%
@@ -168,7 +281,7 @@
 例如%
 \href{https://mirrors.ustc.edu.cn/help/ubuntu.html}{中国科技大学镜像}.
 
-在终端中执行
+执行
 \begin{lstlisting}[language = bash]
   sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
 \end{lstlisting}
@@ -182,7 +295,8 @@
   code ~/sources.list
 \end{lstlisting}
 打开文件,
-将文件替换为以下内容
+将文件替换为以下内容\footnote{根据具体的 Ubuntu 版本,
+具体内容会有所调整.}
 \begin{lstlisting}
   # 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
   deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy main restricted universe   multiverse
@@ -221,33 +335,34 @@
 
 \section{添加 PPA}
 
-在终端中执行
+执行
 \begin{lstlisting}[language = bash]
   sudo add-apt-repository ppa:fenics-packages/fenics
 \end{lstlisting}
 鉴于网络原因,
 直接从 PPA 下载容易丢内容.
-这里介绍中科大的\href{https://lug.ustc.edu.cn/wiki/mirrors/help/revproxy/}{反向镜像},
-将 \textsf{fenics-packages-ubuntu-fenics-focal.list} 备份
+这里介绍中科大的%
+\href{https://mirrors.ustc.edu.cn/}{反向代理},
+将 \textsf{fenics-packages-ubuntu-fenics-jammy.list} 备份
 \begin{lstlisting}[language = bash]
-  sudo cp /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-focal.list /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-focal.list.bak
+  sudo cp /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-jammy.list /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-jammy.list.bak
 \end{lstlisting}
 接下来复制到用户文件夹
 \begin{lstlisting}[language = bash]
-  cp /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-focal.list ~/fenics-packages-ubuntu-fenics-focal.list
+  cp /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-jammy.list ~/fenics-packages-ubuntu-fenics-jammy.list
 \end{lstlisting}
 打开文件
 \begin{lstlisting}[language = bash]
-  code ~/fenics-packages-ubuntu-fenics-focal.list
+  code ~/fenics-packages-ubuntu-fenics-jammy.list
 \end{lstlisting}
 将文件改为
 \begin{lstlisting}
-  deb https://launchpad.proxy.ustclug.org/fenics-packages/fenics/ubuntu focal main
-  # deb-src https://launchpad.proxy.ustclug.org/fenics-packages/fenics/ubuntu focal main
+  deb https://launchpad.proxy.ustclug.org/fenics-packages/fenics/ubuntu jammy main
+  # deb-src https://launchpad.proxy.ustclug.org/fenics-packages/fenics/ubuntu jammy main
 \end{lstlisting}
 而后再替换原文件
 \begin{lstlisting}[language = bash]
-  sudo cp ~/fenics-packages-ubuntu-fenics-focal.list /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-focal.list
+  sudo cp ~/fenics-packages-ubuntu-fenics-jammy.list /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-jammy.list
 \end{lstlisting}
 最后再更新
 \begin{lstlisting}[language = bash]
@@ -257,54 +372,49 @@
 
 \section{安装 FEniCS}
 
-在终端中执行
+在 \textsf{bash} 中执行
 \begin{lstlisting}[language = bash]
   sudo apt install build-essential
 \end{lstlisting}
 为后续做准备.
 接下来执行
 \begin{lstlisting}[language = bash]
-  sudo apt install fenics
+  sudo apt install fenicsx
 \end{lstlisting}
 即可开始安装.
 
 \section{测试安装}
 
-在终端中执行
+在 \textsf{bash} 中执行
 \begin{lstlisting}[language = bash]
-  python3 -c 'import fenics'
+  python3 -c 'import dolfinx'
 \end{lstlisting}
 若没有任何报错提示,
 则说明安装成功.
 
 \section{目前可用的入门资料}
 
-目前 FEniCS 的开发已经不再活跃,
-团队投放更多精力在开发 FEniCSx,
-因此 FEniCS 的入门资料也就缺乏维护.
-
-目前在 FEniCS 官网上还可以找到
-\href{https://fenicsproject.org/tutorial/}{FEniCS Tutorial},
-但其中一些内容已不适用最新版本,
-建议用户搭配 \href{https://github.com/hplgit/fenics-tutorial/issues}{Github issues}
-来阅读书中的内容.
+目前在 FEniCSx 官网上可以找到
+\href{https://jsdokken.com/dolfinx-tutorial/}{FEniCSx 教程},
+阅读过程中可以随时在页面右上方提交 \href{https://github.com/jorgensd/dolfinx-tutorial/issues/new?title=Issue%20on%20page%20%2Findex.html&body=Your%20issue%20content%20here.}{Github issues}.
 除教程外,
 用户还可以阅读
-\href{https://fenicsproject.org/olddocs/dolfin/latest/python/demos.html}{Demos}
+\href{https://docs.fenicsproject.org/}{FEniCSx Project Documentation}
 来学习部分用法.
 
-\chapter{Docker 中安装 FEniCS}
+\chapter{Docker 中 安装 FEniCSx}
 
-\section{安装 WSL2}\label{sec:install-wsl2}
+本部分内容大部分源自 \href{https://github.com/FEniCS/dolfinx#docker-images}{Github 上的安装教程},
+其中有些细节是自己尝试后的经验积累.
 
-对于 Windows 10 家庭版用户,
-使用 Docker 前需要安装 WSL2.
+\section{安装 WSL 和 Docker}
+
+对于 Windows 11 用户,
+使用 Docker 前需要安装 WSL,
+而且默认是 WSL 2.
 具体步骤可以参考第 \ref{sec:wsl.install} 节.
-非 Windows 10 家庭版用户可以越过此步骤.
 
-\section{安装 Docker}\label{sec:install-docker}
-
-在安装完 WSL2 后,
+在安装完 WSL 后,
 用户可以下载 \href{https://www.docker.com/get-started}{Docker 桌面版}.
 安装并重启,
 将开启 Docker 教学环节.
@@ -313,59 +423,26 @@
 Docker 默认不能改变安装路径.
 更加详细的内容可以看\href{https://docs.docker.com/desktop/windows/install/}{这里}.
 
-\section{安装 FEniCS}
+\section{运行 FEniCSx 容器}
 
-打开 \textsf{cmd} 或者 \textsf{PowerShell},
-进入打算安装 FEniCS 的路径中.
-接下来执行
-\begin{lstlisting}[language=bash]
-  docker pull quay.io/fenicsproject/stable:latest
-\end{lstlisting}
-等待系统执行完毕即可.
-
-\section{运行 FEniCS 容器}
-
-依旧在 \textsf{cmd} 或者 \textsf{PowerShell} 中,
-执行
-\begin{lstlisting}[language=bash]
-  docker run -ti quay.io/fenicsproject/stable:latest
-\end{lstlisting}
-系统最终将返回类似
+FEniCSx 团队预构建了 FEniCSx 的 \href{https://hub.docker.com/u/dolfinx}{Docker 镜像}.
+由于 DOLFINx 的 Docker 镜像托管在 Docker-hub.
+用户可以在 \textsf{cmd} 中直接访问该镜像
 \begin{lstlisting}
-  fenics@d66e6f16a673:~$
+  docker run -ti -v D:/work-fenicsx:/root/shared --name fenicsx-container dolfinx/dolfinx:stable
 \end{lstlisting}
-的结果,
-这就表明用户已经运行了 FEniCS 的容器,
-也就表明我们的安装已经成功.
-这里的 \texttt{d66e6f16a673} 是此容器的 ID.
+以上代码中,
+已经在电脑中存在的工作路径 \texttt{D:\textbackslash work-fenicsx} 被设为共享路径,
+容器名称为 \texttt{fenicsx-container}.
 
-\section{共享文件夹}\label{sec:shared-folder}
-
-上述步骤结束后,
-我们已经能够使用 Docker 中的 FEniCS.
-然而我们看不到其他文件夹内的文件,
-也无法调用常用的编辑器、.
-因此,
-现在需要将已有文件夹共享到 Docker 容器中.
-
-比如我有一个文件夹 \texttt{D:\textbackslash work-fenics},
-里面已经保存了我已写好的文件.
-接下来运行
-\begin{lstlisting}[language=bash]
-  docker run -ti -v D:/work-fenics:/home/fenics/shared --name fenics-container quay.io/fenicsproject/stable:latest
-\end{lstlisting}
-将开启新的容器,
-并且给它命名为 \texttt{fenics-container}.
-输入
-\begin{lstlisting}[language=bash]
-  ls
-\end{lstlisting}
-可以看到这里多了一个 \texttt{shared} 文件夹,
-进入后发现 \texttt{D:\textbackslash work-fenics} 的内容均在其中.
+添加共享路径是由于 Docker 自身的特性,
+它默认不能访问镜像外的文件.
+如果工作路径 \texttt{D:\textbackslash work-fenicsx} 中有已经写好的文件,
+就必须将已有工作路径共享到 Docker 容器中.
 
 \section{查询容器}
 
-执行
+在 \textsf{cmd} 中执行
 \begin{lstlisting}
   docker ps
 \end{lstlisting}
@@ -376,12 +453,12 @@ Docker 默认不能改变安装路径.
 \end{lstlisting}
 可以查询所有容器的信息.
 
-\section{退出、停止、再进入甚至删除容器}\label{sec:handle-containder}
+\section{退出、停止、再进入甚至删除容器}
 
 与一般的命令行操作一样,
-在
+在 Docker 容器内
 \begin{lstlisting}
-  fenics@d66e6f16a673:~$
+  fenicsx@d66e6f16a673:~
 \end{lstlisting}
 中输入
 \begin{lstlisting}
@@ -390,13 +467,13 @@ Docker 默认不能改变安装路径.
 就退出了容器,
 
 如果要停止依然启动的容器,
-可以执行
+可以在 \textsf{cmd} 中执行
 \begin{lstlisting}
   docker stop d66e6f16a673
 \end{lstlisting}
 或者
 \begin{lstlisting}
-  docker stop fenics-container
+  docker stop fenicsx-container
 \end{lstlisting}
 停止已有的容器,
 前者是容器的 ID,
@@ -404,88 +481,28 @@ Docker 默认不能改变安装路径.
 
 想要再进入容器,
 需要先启动容器,
-只需要执行
+只需要在 \textsf{cmd} 中执行
 \begin{lstlisting}
-  docker start fenics-container
+  docker start fenicsx-container
 \end{lstlisting}
 然后再执行
 \begin{lstlisting}
-  docker exec -ti -u fenics fenics-container /bin/bash -l
+  docker exec -ti fenicsx-container /bin/bash -l
 \end{lstlisting}
 便可进入容器.
 
 如果不再需要容器,
-执行
+在 \textsf{cmd} 中执行
 \begin{lstlisting}
-  docker rm fenics-container
+  docker rm fenicsx-container
 \end{lstlisting}
 可以直接删除它,
 
-\section{编译文件}
-
-我们假设在 \texttt{D:\textbackslash work-fenics} 中有个 \texttt{demo.py} 文件.
-使用上述方法进入容器后,
-可以进入 \texttt{shared} 文件夹
-\begin{lstlisting}
-  cd shared
-\end{lstlisting}
-然后执行
-\begin{lstlisting}
-  python3 demo.py
-\end{lstlisting}
-编译.
-
-注意,
-这种方法不允许用户使用 \texttt{matplotlib.pyplot.show()} 查看图形结果.
-还是建议用户多使用 \href{https://www.paraview.org/}{Paraview} 做后处理.
-
-\section{文献资料}
-
-有关在 Docker 中使用 FEniCS,
-目前比较权威的资料是 \href{https://fenics.readthedocs.io/projects/containers/en/latest/index.html}{FEniCS Containers Document}.
-它里面包含了很多用法,
-例如 \href{https://fenics.readthedocs.io/projects/containers/en/latest/work_flows.html#run-fenics-in-a-docker-container-like-an-application}{Run FEniCS in a Docker container like an application}.
-有兴趣的用户还请认真阅读.
-
-\chapter{FEniCSx 安装}
-
-目前 FEniCS 团队已经专心维护 FEniCSx,
-而不再继续开发 FEniCS,
-因此本章将讲述如何安装 FEniCSx.
-
-\section{安装 WSL2 和 Docker}
-
-目前 FEniCS 团队推荐用户使用 Docker 安装 FEniCSx.
-这部分内容请读者参考第 \ref{sec:install-wsl2} 节和第 \ref{sec:install-docker} 节.
-
-\section{运行 FEniCSx 容器}
-
-FEniCS 团队预构建了 FEniCSx 的 \href{https://hub.docker.com/r/dolfinx/dolfinx}{Docker 镜像}.
-由于 DOLFINx 的 Docker 镜像托管在 Docker-hub.
-用户可以直接访问该镜像
-\begin{lstlisting}
-  docker run -ti -v D:/work-fenicsx:/root/shared --name fenicsx-container dolfinx/dolfinx
-\end{lstlisting}
-以上代码中,
-我将工作路径 \texttt{D:\textbackslash work-fenicsx} 设为共享路径,
-容器名称为 \texttt{fenicsx-container}.
-这些概念可以阅读第 \ref{sec:shared-folder} 节加以了解.
-
-\section{退出、停止、再进入甚至删除容器}
-
-这部分内容是 Docker 的操作,
-可以阅读第 \ref{sec:handle-containder} 节加以了解.
-注意再进入 \texttt{fenicsx-container} 容器,
-执行
-\begin{lstlisting}
-  docker exec -ti fenicsx-container /bin/bash -l
-\end{lstlisting}
-
 \section{拉取镜像}
 
-鉴于目前 FEniCSx 还处于开发状态,
+目前 FEniCSx 还处于开发状态,
 因此很多时候需要拉取镜像来使用最新的版本.
-在命令行中执行
+在 \textsf{cmd} 中执行
 \begin{lstlisting}
   docker pull dolfinx/dolfinx
 \end{lstlisting}
@@ -533,8 +550,8 @@ FEniCS 团队预构建了 FEniCSx 的 \href{https://hub.docker.com/r/dolfinx/dol
 依次执行
 \begin{lstlisting}
   export PYVISTA_OFF_SCREEN=true
-  apt-get update
-  apt-get install -y --no-install-recommends libgl1-mesa-dev xvfb
+  apt update
+  apt install -y --no-install-recommends libgl1-mesa-dev xvfb
   pip3 install pyvista
 \end{lstlisting}
 即可安装完成.
@@ -548,7 +565,7 @@ FEniCS 团队预构建了 FEniCSx 的 \href{https://hub.docker.com/r/dolfinx/dol
 \section{文献资料}
 
 有关在 Docker 中使用 FEniCSx,
-目前比较权威的资料是  \href{https://docs.fenicsproject.org/dolfinx/main/python/index.html}{DOLFINx documentation}.
+目前比较权威的资料是 \href{https://docs.fenicsproject.org/dolfinx/main/python/index.html}{DOLFINx documentation}.
 此外还有  \href{https://jorgensd.github.io/dolfinx-tutorial/index.html}{FEniCSx 教程}.
 有兴趣的用户还请认真阅读.
 
