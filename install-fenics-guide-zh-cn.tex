@@ -370,7 +370,7 @@ WSL 只能安装在系统盘,
 \end{lstlisting}
 即完成添加 PPA 的操作.
 
-\section{安装 FEniCS}
+\section{安装 FEniCSx 及其他组件}
 
 在 \textsf{bash} 中执行
 \begin{lstlisting}[language = bash]
@@ -381,7 +381,32 @@ WSL 只能安装在系统盘,
 \begin{lstlisting}[language = bash]
   sudo apt install fenicsx
 \end{lstlisting}
-即可开始安装.
+即可开始安装 FEniCSx.
+
+此外,
+在很多 FEniCSx 例子中都需要 \texttt{pyvista},
+它需要使用 \textsf{pip3} 来安装.
+但受网络因素影响,
+安装速度很慢,
+所以需要先更换到国内的源,
+例如%
+\href{https://mirrors.tuna.tsinghua.edu.cn/help/pypi/}{清华源}.
+
+在 \textsf{bash} 中执行
+\begin{lstlisting}
+  python3 -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
+\end{lstlisting}
+升级 \textsf{pip3}.
+然后执行
+\begin{lstlisting}
+  python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+\end{lstlisting}
+将源全部换为清华源.
+接下来执行
+\begin{lstlisting}
+  python3 -m pip install pyvista
+\end{lstlisting}
+安装 \texttt{pyvista}.
 
 \section{测试安装}
 
