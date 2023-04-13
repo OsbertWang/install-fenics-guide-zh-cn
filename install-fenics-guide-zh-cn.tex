@@ -73,7 +73,21 @@
   2023年3月25日,
   在 Windows 11 下的 WSL 中安装了 Ubuntu 22.04,
   此次尝试安装 FEniCSx.
+
+  2023年4月13日,
+  尝试在 Anaconda 中安装 FEniCSx.
   
+  实际上直接在 Ubuntu 中安装 FEniCSx 的过程与本手册中介绍得相似,
+  用户直接查阅相关内容即可.
+
+  目前在 FEniCSx 官网上可以找到
+  \href{https://jsdokken.com/dolfinx-tutorial/}{FEniCSx 教程},
+  阅读过程中可以随时在页面右上方提交 \href{https://github.com/jorgensd/ dolfinx-tutorial/issues/new?title=Issue%20on%20page%20%2Findex.html& body=Your%20issue%20content%20here.}{Github issues}.
+  除教程外,
+  用户还可以阅读
+  \href{https://docs.fenicsproject.org/}{FEniCSx Project Documentation}
+  来学习部分用法.
+
   希望本手册能够方便用户使用.
 \end{abstract}
 
@@ -408,6 +422,20 @@ WSL 只能安装在系统盘,
 \end{lstlisting}
 安装 \texttt{pyvista}.
 
+在当前的 FEniCSx 教程中还涉及
+\href{https://github.com/ornladios/ADIOS2}{ADIOS2}
+的使用,
+它主要用于使用
+\href{https://www.paraview.org/}{Paraview}
+做后处理.
+根据
+\href{https://github.com/jorgensd/dolfinx-tutorial/issues/125#issuecomment-1502776418}{Github}
+上的讨论,
+它需要安装在 FEniCSx 之前.
+\href{https://adios2.readthedocs.io/en/latest/setting_up/setting_up.html#}{文档}%
+中提供了由源安装的方法,
+感兴趣的用户可自行研究.
+
 \section{测试安装}
 
 在 \textsf{bash} 中执行
@@ -423,16 +451,6 @@ WSL 只能安装在系统盘,
   python3 demo_poisson.py
 \end{lstlisting}
 查看结果.
-
-\section{目前可用的入门资料}
-
-目前在 FEniCSx 官网上可以找到
-\href{https://jsdokken.com/dolfinx-tutorial/}{FEniCSx 教程},
-阅读过程中可以随时在页面右上方提交 \href{https://github.com/jorgensd/dolfinx-tutorial/issues/new?title=Issue%20on%20page%20%2Findex.html&body=Your%20issue%20content%20here.}{Github issues}.
-除教程外,
-用户还可以阅读
-\href{https://docs.fenicsproject.org/}{FEniCSx Project Documentation}
-来学习部分用法.
 
 \chapter{Docker 中 安装 FEniCSx}
 
@@ -555,7 +573,7 @@ FEniCSx 团队预构建了 FEniCSx 的 \href{https://hub.docker.com/u/dolfinx}{D
 \end{lstlisting}
 编译文件.
 
-\section{安装 pyvista}
+\section{安装其他组件}
 
 上面的例子运行后,
 系统会出现
@@ -587,18 +605,26 @@ FEniCSx 团队预构建了 FEniCSx 的 \href{https://hub.docker.com/u/dolfinx}{D
   pip3 install pyvista
 \end{lstlisting}
 即可安装完成.
-如果论坛所说,
+如论坛所说,
 再次执行
 \begin{lstlisting}
   python3 demo_poisson.py
 \end{lstlisting}
 将得到 \texttt{u.png} 文件.
 
-\section{文献资料}
+若需使用
+\href{https://github.com/ornladios/ADIOS2}{ADIOS2},
+根据%
+\href{https://adios2.readthedocs.io/en/latest/setting_up/setting_up.html#docker}{文档},
+用户可由 Docker 安装,
+感兴趣的用户可自行研究.
 
-有关在 Docker 中使用 FEniCSx,
-目前比较权威的资料是 \href{https://docs.fenicsproject.org/dolfinx/main/python/index.html}{DOLFINx documentation}.
-此外还有  \href{https://jorgensd.github.io/dolfinx-tutorial/index.html}{FEniCSx 教程}.
-有兴趣的用户还请认真阅读.
+\chapter{Anaconda 中安装 FEniCSx}
+
+本部分内容主要源自
+\href{https://github.com/FEniCS/dolfinx#docker-images}{Github}.
+Anaconda 中安装 FEniCSx 无法直接在 Windows 11 上实现,
+因为一些依赖不支持 Windows 操作系统,
+所以还是要在 WSL 中安装.
 
 \end{document}
