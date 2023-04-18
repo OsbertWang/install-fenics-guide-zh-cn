@@ -268,7 +268,7 @@ WSL 只能安装在系统盘,
 将项目文件直接存储在 WSL 的驱动器上,
 性能速度会提高.
 
-\section{选择编辑器}
+\section{选择编辑器}\label{sec:editor}
 
 目前 Windows 11 已经允许 WSL 可视化,
 但我还是更偏向于使用
@@ -622,9 +622,143 @@ FEniCSx 团队预构建了 FEniCSx 的 \href{https://hub.docker.com/u/dolfinx}{D
 \chapter{Anaconda 中安装 FEniCSx}
 
 本部分内容主要源自
-\href{https://github.com/FEniCS/dolfinx#docker-images}{Github}.
+\href{https://github.com/FEniCS/dolfinx#conda}{Github}.
+
+\section{安装 WSL 和 Anaconda}
+
 Anaconda 中安装 FEniCSx 无法直接在 Windows 11 上实现,
 因为一些依赖不支持 Windows 操作系统,
 所以还是要在 WSL 中安装.
+具体步骤可以参考第 \ref{sec:wsl.install} 节.
+
+在安装完 WSL 后,
+\href{https://www.anaconda.com/products/distribution#Downloads}{下载}
+Anaconda 的 64-Bit (x86) 安装文件 \texttt{Anaconda3-*-Linux-x86\_64.sh},
+这里的 \texttt{*} 表示时间.
+
+下载完成后,
+在 \textsf{bash} 中进入 \texttt{Anaconda3-*-Linux-x86\_64.sh} 所在目录,
+将其复制到用户文件夹
+\begin{lstlisting}[language=bash]
+  cp Anaconda3-*-Linux-x86\_64.sh ~/
+\end{lstlisting}
+进入用户文件夹并安装
+\begin{lstlisting}[language=bash]
+  cd ~/
+  bash Anaconda3-*-Linux-x86\_64.sh
+\end{lstlisting}
+接下来根据系统提示进行安装即可,
+其中大约有几次选项.
+第一次是
+\begin{lstlisting}
+  Do you accept the license terms?
+\end{lstlisting}
+这个必须写 \texttt{yes}.
+第二次是
+\begin{lstlisting}
+  Anaconda3 will now be installed into this location:
+  /home/USERNAME/anaconda3
+    - Press ENTER to confirm the location
+    - Press CTRL-C to abort the installation
+    - Or specify a different location below
+\end{lstlisting}
+这里的 \texttt{USERNAME} 是用户名,
+建议用户在此路径安装.
+第三次是
+\begin{lstlisting}
+  Do you wish the installer to initialize Anaconda3
+  by running conda init? [yes|no]
+\end{lstlisting}
+这个建议写 \texttt{yes},
+否则后续用户需要自行添加环境变量.
+安装完成后,
+用户关闭再打开 \textsf{bash},
+在路径前显示 \texttt{(base)} 即表示安装成功.
+如果用户不希望 \texttt{base} 启用,
+在 \textsf{bash} 中执行
+\begin{lstlisting}[language=bash]
+  conda config --set auto_activate_base false
+\end{lstlisting}
+
+\subsection{使用镜像}
+
+受限于大陆网络现状,
+用户也可访问大陆的 Anaconda 镜像,
+如%
+\href{https://mirrors.tuna.tsinghua.edu.cn/anaconda/archive/}{清华大学}%
+和%
+\href{https://mirrors.pku.edu.cn/anaconda/archive/}{北京大学},
+下载安装文件.
+
+安装完成后,
+在用户目录下打开 \texttt{.condarc} 文件并修改其中内容,
+例如使用 \href{https://code.visualstudio.com/}{VS Code}\footnote{详情见 \ref{sec:editor}~节}
+\begin{lstlisting}
+  code ~/.condarc
+\end{lstlisting}
+将以下内容复制到文件中\footnote{来自清华大学\href{https://mirrors.tuna.tsinghua.edu.cn/help/anaconda/}{镜像}}
+\begin{lstlisting}
+  channels:
+    - defaults
+  show_channel_urls: true
+  default_channels:
+    - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+    - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+    - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
+  custom_channels:
+    conda-forge: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+    msys2: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+    bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+    menpo: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+    pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+    pytorch-lts: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+    simpleitk: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+\end{lstlisting}
+保存退出,
+再执行以下命令清除索引缓存,
+保证用的是镜像站提供的索引
+\begin{lstlisting}
+  conda clean -i
+\end{lstlisting}
+
+\subsection{使用自定义虚拟环境}
+
+使用 Anaconda 时,
+默认在 \texttt{base} 环境中,
+用户也可以自定义环境.
+实际上,
+\href{https://github.com/FEniCS/dolfinx#conda}{FEniCSx 安装手册}%
+建议使用虚拟环境来安装.
+
+在 \texttt{base} 中执行
+\begin{lstlisting}
+  conda create -n fenicsx-env python=3.10
+\end{lstlisting}
+这表示创建 python 版本为 3.10,
+名字为 fenicsx-env 的虚拟环境,
+版本可以不指定.
+激活 fenicsx-env 虚拟环境
+\begin{lstlisting}
+  conda activate fenicsx-env
+\end{lstlisting}
+退出被激活的虚拟环境
+\begin{lstlisting}
+  conda deactivate
+\end{lstlisting}
+删除 fenicsx-env 虚拟环境
+\begin{lstlisting}
+  conda remove -n fenicsx-env --all
+\end{lstlisting}
+
+\section{安装 FEniCSx}
+
+安装 Anaconda 后,
+在 \textsf{bash} 中执行
+\begin{lstlisting}
+  conda create -n fenicsx-env
+  conda activate fenicsx-env
+  conda install -c conda-forge fenics-dolfinx mpich pyvista
+\end{lstlisting}
+即可安装.
 
 \end{document}
