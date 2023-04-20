@@ -444,8 +444,12 @@ WSL 只能安装在系统盘,
 \end{lstlisting}
 若没有任何报错提示,
 则说明安装成功.
-接下来可以下载一个
+接下来可以下载
 \href{https://docs.fenicsproject.org/dolfinx/main/python/_downloads/b94ac7be61dc3726ca331afd20f195d2/demo_poisson.py}{demo\_poisson.py}
+或直接复制本地的同名文件
+\begin{lstlisting}
+  cp /usr/share/dolfinx/demo-python/demo_poisson.py ./
+\end{lstlisting}
 并在 \textsf{bash} 中编译
 \begin{lstlisting}
   python3 demo_poisson.py
