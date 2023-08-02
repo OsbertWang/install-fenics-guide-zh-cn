@@ -1,0 +1,562 @@
+\documentclass{report}
+%\documentclass[fontset=founder]{ctexrep}
+%\usepackage{accsupp}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage[pdfpagelayout=SinglePage]{hyperref}
+\usepackage[os=win,hyperrefcolorlinks]{menukeys}
+
+%\ctexset{
+%  section/format = \Large\bfseries\raggedright,
+%}
+
+\lstset{
+  backgroundcolor = \color{lightgray!30},
+  keywordstyle    = \color{blue},
+  stringstyle     = \color{brown},
+  basicstyle      = {\small\ttfamily},
+  breaklines      = true,
+  tabsize         = 4,
+  gobble          = 2,
+  numbers         = left,
+%  numberstyle     = \tiny\emptyaccsupp,
+  frame           = single,
+%  xleftmargin     = \ccwd,
+%  numbersep       = \ccwd,
+  columns         = fullflexible,
+%  emphstyle       = {\color{blue}\small\ttfamily},
+%  emph            = {mkdir,rmdir,sudo,mount,umount,rm},
+}
+
+%\newcommand\emptyaccsupp[1]{%
+%  \BeginAccSupp{ActualText={}}#1\EndAccSupp{}%
+%}
+
+\renewmenumacro{\menu}[>]{angularmenus}
+\renewmenumacro{\keys}[+]{shadowedroundedkeys}
+
+\title{\bfseries A Brief Introduction to FEniCS Installation%
+	\thanks{\url{https://github.com/OsbertWang/install-fenics-guide-zh-cn}}%
+}
+\author{Ran Wang%
+	\thanks{\href{mailto:ranwang.osbert@outlook.com}%
+		{\ttfamily ranwang.osbert@outlook.com}}%
+}
+\date{\today}
+
+\begin{document}
+	
+	\maketitle
+	
+	\begin{abstract}
+		
+		This document records my experience of installing FEniCS.
+		
+		At the very beginning, I installed FEniCS under Ubuntu 20.04 in WSL. As I don't have much experience with Ubuntu, there might be some mistakes in my record. Besides, the development of FEniCS has been stopped, and its successor, FEniCSx, is not yet stable. This undeniably causes uncertainty for users.
+		
+		On October 23, 2021, I tried to install \href{https://www.docker.com/get-started}{Docker}. Therefore, I have added the steps to install FEniCS under Docker.
+		
+		On October 28, 2021, I formally wrote the installation steps of FEniCSx into the manual. Following the official suggestions at the time, I only wrote down the installation steps under Docker.
+		
+		On March 25, 2023, I installed Ubuntu 22.04 in WSL under Windows 11 and attempted to install FEniCSx.
+		
+		On April 13, 2023, I attempted to install FEniCSx in Anaconda.
+		
+		In fact, the process of directly installing FEniCSx in Ubuntu is similar to what is introduced in this manual, users can directly refer to the relevant content.
+		
+		Currently, the \href{https://jsdokken.com/dolfinx-tutorial/}{FEniCSx tutorial} can be found on the official FEniCSx website. During reading, you can submit \href{https://github.com/jorgensd/ dolfinx-tutorial/issues/new?title=Issue%20on%20page%20%2Findex.html& body=Your%20issue%20content%20here.}{Github issues} at any time in the upper right corner of the page. Besides the tutorial, users can also read the \href{https://docs.fenicsproject.org/}{FEniCSx Project Documentation} to learn some usage.
+		
+		I hope this manual will facilitate users.
+	\end{abstract}
+
+\tableofcontents
+
+\chapter{Installing FEniCSx in WSL}
+
+\section{Install WSL}\label{sec:wsl.install}
+
+There are many tutorials on how to install WSL on the Internet, for instance, the \href{https://learn.microsoft.com/zh-cn/windows/wsl/install}{official Microsoft documentation}. However, due to the fact that the mainland network cannot freely access the \href{https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json}{WSL json} file which is backed up at \url{raw.githubusercontent.com}, the direct installation using
+\begin{lstlisting}
+	wsl --install
+\end{lstlisting}
+fails. Therefore, alternative plans have to be adopted, such as the \href{https://learn.microsoft.com/zh-cn/windows/wsl/install-manual}{older manual installation steps} or modifying the hosts file.
+
+Specifically, find the IP corresponding to \url{raw.githubusercontent.com} on some IP query websites, for example, the one I found is
+\begin{lstlisting}
+	185.199.111.133 raw.githubusercontent.com
+\end{lstlisting}
+Next, open the following with administrative privileges
+\begin{lstlisting}
+	C:\Windows\System32\drivers\etc\hosts
+\end{lstlisting}
+and add the queried IP to the end of the file. Now, if you execute
+\begin{lstlisting}
+	wsl -l -o
+\end{lstlisting}
+you can see the currently permitted WSL distributions to install
+\begin{lstlisting}
+	NAME                                   FRIENDLY NAME
+	Ubuntu                                 Ubuntu
+	Debian                                 Debian GNU/Linux
+	kali-linux                             Kali Linux Rolling
+	Ubuntu-18.04                           Ubuntu 18.04 LTS
+	Ubuntu-20.04                           Ubuntu 20.04 LTS
+	Ubuntu-22.04                           Ubuntu 22.04 LTS
+	OracleLinux_8_5                        Oracle Linux 8.5
+	OracleLinux_7_9                        Oracle Linux 7.9
+	SUSE-Linux-Enterprise-Server-15-SP4    SUSE Linux Enterprise Server 15 SP4
+	openSUSE-Leap-15.4                     openSUSE Leap 15.4
+	openSUSE-Tumbleweed                    openSUSE Tumbleweed
+\end{lstlisting}
+
+\section{Moving the Installation Location of WSL}
+
+Considering that some users have limited system disk space, and according to the \href{https://learn.microsoft.com/zh-cn/windows/wsl/troubleshooting?source=recommendations#installation-issues}{official Microsoft documentation}, WSL can only be installed on the system disk. Therefore, it is possible to consider moving the installation location of WSL to another drive. This section is sourced from \href{https://superuser.com/questions/1701175/installing-ubuntu-on-mnt-d-with-wsl}{StackExchange}. The method involves operations on the main system and the subsystem.
+
+The first step is to create a new location. Suppose the new location is on the \texttt{X:\textbackslash} drive. Run
+\begin{lstlisting}[language=bash]
+	wsl -l
+\end{lstlisting}
+in \textsf{cmd} to see the currently installed WSL distributions, for example
+\begin{lstlisting}
+	Windows Subsystem for Linux Distributions:
+	Ubuntu (Default)
+\end{lstlisting}
+Then, execute
+\begin{lstlisting}[language=bash]
+	lsb_release -a
+\end{lstlisting}
+in \textsf{bash} to check the actual version of Ubuntu in the WSL, for example
+\begin{lstlisting}
+	No LSB modules are available.
+	Distributor ID: Ubuntu
+	Description:    Ubuntu 22.04.2 LTS
+	Release:        22.04
+	Codename:       jammy
+\end{lstlisting}
+Next, execute in \textsf{cmd}
+\begin{lstlisting}[language=bash]
+	mkdir X:\WSL\instances\Ubuntu2204
+	mkdir X:\WSL\images
+	cd X:\WSL\images
+\end{lstlisting}
+to create a new location. Here, we name it \texttt{Ubuntu2204} because the actual version of Ubuntu is 22.04, but you can use other names.
+
+The second step is to export the original WSL distribution and import it to the new location. In \textsf{cmd}, execute
+\begin{lstlisting}[language=bash]
+	wsl --export Ubuntu ubuntu.tar
+	wsl --import Ubuntu2204 X:\WSL\instances\Ubuntu2204 ubuntu.tar --version 2
+\end{lstlisting}
+The first line's \texttt{Ubuntu} refers to the default system WSL distribution. This command exports the original distribution into a compressed package. The second line's \texttt{Ubuntu2204} is the designated future WSL distribution, which means importing the previously exported package into a new WSL distribution.
+
+The third step is to launch the new distribution and set it as default. In \textsf{cmd}, execute
+\begin{lstlisting}[language=bash]
+	wsl ~ -d Ubuntu2204
+\end{lstlisting}
+to enter the WSL system of the \texttt{Ubuntu2204} distribution. In the current \textsf{bash}, execute
+\begin{lstlisting}[language=bash]
+	sudo -e /etc/wsl.conf
+\end{lstlisting}
+and input the following
+\begin{lstlisting}
+	[user]
+	default=<your_username>
+\end{lstlisting}
+\texttt{<your\_username>} is a user-defined WSL username, personally I used the original username from the \texttt{Ubuntu} distribution. Then press \keys{\ctrl + X}, \keys{Y}, \keys{\enter} in sequence to save and exit. Exit \texttt{bash}, and in \texttt{cmd}, execute
+\begin{lstlisting}[language=bash]
+	wsl --terminate Ubuntu2204
+	wsl ~ -d Ubuntu2204
+\end{lstlisting}
+If everything is normal, you can set \texttt{Ubuntu2204} as the default WSL distribution by executing in \texttt{cmd}
+\begin{lstlisting}[language=bash]
+	wsl --set-default Ubuntu2204
+\end{lstlisting}
+Now, if you execute in \textsf{bash}
+\begin{lstlisting}[language=bash]
+	echo $WSL_DISTRO_NAME
+\end{lstlisting}
+and the return result
+\begin{lstlisting}
+	Ubuntu2204
+\end{lstlisting}
+indicates that everything is normal.
+
+The fourth step is to delete the old distribution. By executing in \textsf{cmd}
+\begin{lstlisting}[language=bash]
+	wsl --unregister Ubuntu
+\end{lstlisting}
+you will delete the old distribution \texttt{Ubuntu}. Now, if you execute in \textsf{cmd}
+\begin{lstlisting}[language=bash]
+	wsl -l
+\end{lstlisting}
+you will see
+\begin{lstlisting}
+	Windows Subsystem for Linux Distributions:
+	Ubuntu2204 (Default)
+\end{lstlisting}
+
+In fact, moving the entire WSL installation location has another benefit. According to the \href{https://learn.microsoft.com/zh-cn/windows/wsl/filesystems#file-storage-and-performance-across-file-systems}{official Microsoft documentation}, storing project files directly on the WSL drive can improve performance speed.
+
+\section{Choosing an Editor}\label{sec:editor}
+
+Although Windows 11 now allows visualization for WSL, I still prefer using \href{https://code.visualstudio.com/}{VS Code}. Detailed introductions can be found in the \href{https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/wsl-vscode}{official Microsoft document}, which primarily utilizes the \href{https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack}{Remote Development}.
+
+\section{Switching Ubuntu Sources}\label{sec:source}
+
+From this section onwards, unless otherwise stated, all command line operations are to be performed in the WSL's \textsf{bash}.
+
+Given the specific network characteristics in mainland China, it is highly recommended that users change Ubuntu's source before installing FEniCSx. Here, I use the \href{https://mirrors.tuna.tsinghua.edu.cn/help/ubuntu/}{Tsinghua University mirror}. Of course, there are other mirrors, such as the \href{https://mirrors.ustc.edu.cn/help/ubuntu.html}{University of Science and Technology of China mirror}.
+
+Execute 
+\begin{lstlisting}[language = bash]
+	sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak
+\end{lstlisting}
+to back up the \textsf{sources.list} file. Then execute
+\begin{lstlisting}[language = bash]
+	cp /etc/apt/sources.list ~/sources.list
+\end{lstlisting}
+to copy a \textsf{sources.list} to the user folder. 
+\begin{lstlisting}[language = bash]
+	code ~/sources.list
+\end{lstlisting}
+to open the file, replace the file content with the following content\footnote{Specific content may vary depending on the Ubuntu version.}
+\begin{lstlisting}
+	# The source mirror is commented out by default to speed up apt update, you can uncomment it as needed
+	deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy main restricted universe   multiverse
+	# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy main restricted   universe multiverse
+	deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates main restricted   universe multiverse
+	# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates main   restricted universe multiverse
+	deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-backports main   restricted universe multiverse
+	# deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-backports main   restricted universe multiverse
+	
+	# deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-security main   restricted universe multiverse
+	# # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-security main   restricted universe multiverse
+	
+	deb http://security.ubuntu.com/ubuntu/ jammy-security main restricted universe   multiverse
+	# deb-src http://security.ubuntu.com/ubuntu/ jammy-security main restricted   universe multiverse
+	
+	# Pre-release software source, not recommended to enable
+	# deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-proposed main   restricted universe multiverse
+	# # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-proposed main   restricted universe multiverse
+\end{lstlisting}
+Then execute
+\begin{lstlisting}[language = bash]
+	sudo cp ~/sources.list /etc/apt/sources.list
+\end{lstlisting}
+to replace the original \textsf{sources.list} file. After that, execute
+\begin{lstlisting}[language=bash]
+	sudo apt update && sudo apt upgrade
+\end{lstlisting}
+to switch sources and update. If there's an error, you can execute
+\begin{lstlisting}[language=bash]
+	sudo cp /etc/apt/sources.list.bak /etc/apt/sources.list
+\end{lstlisting}
+to restore the file.
+
+\section{Adding PPA}
+
+Execute 
+\begin{lstlisting}[language = bash]
+	sudo add-apt-repository ppa:fenics-packages/fenics
+\end{lstlisting}
+Due to network reasons, downloading directly from the PPA can result in lost content. Here, the \href{https://mirrors.ustc.edu.cn/}{reverse proxy} of USTC is introduced. Backup \textsf{fenics-packages-ubuntu-fenics-jammy.list} 
+\begin{lstlisting}[language = bash]
+	sudo cp /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-jammy.list /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-jammy.list.bak
+\end{lstlisting}
+Then copy it to the user folder
+\begin{lstlisting}[language = bash]
+	cp /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-jammy.list ~/fenics-packages-ubuntu-fenics-jammy.list
+\end{lstlisting}
+Open the file
+\begin{lstlisting}[language = bash]
+	code ~/fenics-packages-ubuntu-fenics-jammy.list
+\end{lstlisting}
+Change the file to
+\begin{lstlisting}
+	deb https://launchpad.proxy.ustclug.org/fenics-packages/fenics/ubuntu jammy main
+	# deb-src https://launchpad.proxy.ustclug.org/fenics-packages/fenics/ubuntu jammy main
+\end{lstlisting}
+Then replace the original file
+\begin{lstlisting}[language = bash]
+	sudo cp ~/fenics-packages-ubuntu-fenics-jammy.list /etc/apt/sources.list.d/fenics-packages-ubuntu-fenics-jammy.list
+\end{lstlisting}
+Finally update
+\begin{lstlisting}[language = bash]
+	sudo apt update
+\end{lstlisting}
+to complete the PPA addition operation.
+
+\section{Installing FEniCSx and Other Components}
+
+In \textsf{bash}, execute
+\begin{lstlisting}[language = bash]
+	sudo apt install build-essential
+\end{lstlisting}
+to prepare for the following steps. Then execute
+\begin{lstlisting}[language = bash]
+	sudo apt install fenicsx
+\end{lstlisting}
+to start installing FEniCSx.
+
+Moreover, in many FEniCSx examples, \texttt{pyvista} is required, which needs to be installed using \textsf{pip3}. However, due to network factors, the installation speed is slow, so it is necessary to switch to a domestic source, such as the \href{https://mirrors.tuna.tsinghua.edu.cn/help/pypi/}{Tsinghua source}.
+
+In \textsf{bash}, execute
+\begin{lstlisting}
+	python3 -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
+\end{lstlisting}
+to upgrade \textsf{pip3}. Then execute
+\begin{lstlisting}
+	python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+\end{lstlisting}
+to switch all sources to the Tsinghua source. Next, execute
+\begin{lstlisting}
+	python3 -m pip install pyvista
+\end{lstlisting}
+to install \texttt{pyvista}.
+
+In the current FEniCSx tutorial, the use of \href{https://github.com/ornladios/ADIOS2}{ADIOS2} is also involved, which is mainly used for post-processing with \href{https://www.paraview.org/}{Paraview}. According to the discussion on \href{https://github.com/jorgensd/dolfinx-tutorial/issues/125#issuecomment-1502776418}{Github}, it needs to be installed before FEniCSx. The \href{https://adios2.readthedocs.io/en/latest/setting_up/setting_up.html#}{document} provides a method for installation from the source, which interested users can study on their own.
+
+\section{Test Installation}
+
+Execute in \textsf{bash} 
+\begin{lstlisting}[language = bash]
+	python3 -c 'import dolfinx'
+\end{lstlisting}
+If there are no error prompts, the installation is successful. Next, you can download \href{https://docs.fenicsproject.org/dolfinx/main/python/_downloads/b94ac7be61dc3726ca331afd20f195d2/demo_poisson.py}{demo\_poisson.py} or directly copy the local file with the same name
+\begin{lstlisting}
+	cp /usr/share/dolfinx/demo-python/demo_poisson.py ./
+\end{lstlisting}
+And compile in \textsf{bash}
+\begin{lstlisting}
+	python3 demo_poisson.py
+\end{lstlisting}
+to check the result.
+
+\chapter{Installing FEniCSx in Docker}
+
+Most of the content in this section comes from the \href{https://github.com/FEniCS/dolfinx#docker-images}{installation tutorial on Github}, with some details being the accumulation of personal experience.
+
+\section{Install WSL and Docker}
+
+For Windows 11 users, you need to install WSL before using Docker, and by default it's WSL 2. The specific steps can be referred to in section \ref{sec:wsl.install}.
+
+After installing WSL, users can download \href{https://www.docker.com/get-started}{Docker Desktop}. Install and restart to start Docker's learning process. Note that in the current version of Windows, Docker cannot change the installation path by default. More detailed content can be seen \href{https://docs.docker.com/desktop/windows/install/}{here}.
+
+\section{Run FEniCSx Container}
+
+The FEniCSx team has pre-built the \href{https://hub.docker.com/u/dolfinx}{Docker image for FEniCSx}. Since the DOLFINx Docker image is hosted on Docker-hub, users can directly access this image in \textsf{cmd}
+\begin{lstlisting}
+	docker run -ti -v D:/work-fenicsx:/root/shared --name fenicsx-container dolfinx/dolfinx:stable
+\end{lstlisting}
+In the code above, the existing work path \texttt{D:\textbackslash work-fenicsx} on the computer is set as the shared path, and the container name is \texttt{fenicsx-container}.
+
+Adding a shared path is due to Docker's own characteristics, it cannot access files outside the image by default. If there are already written files in the work path \texttt{D:\textbackslash work-fenicsx}, it is necessary to share the existing work path into the Docker container.
+
+\section{Query Container}
+
+In \textsf{cmd}, execute
+\begin{lstlisting}
+	docker ps
+\end{lstlisting}
+to see the information of the currently running containers. Execute
+\begin{lstlisting}
+	docker ps -a
+\end{lstlisting}
+to query the information of all containers.
+
+\section{Exit, Stop, Re-enter, and Even Delete Container}
+
+Like general command line operations, in the Docker container
+\begin{lstlisting}
+	fenicsx@d66e6f16a673:~
+\end{lstlisting}
+Enter
+\begin{lstlisting}
+	exit
+\end{lstlisting}
+to exit the container.
+
+If you want to stop the still-running container, you can execute in \textsf{cmd}
+\begin{lstlisting}
+	docker stop d66e6f16a673
+\end{lstlisting}
+or
+\begin{lstlisting}
+	docker stop fenicsx-container
+\end{lstlisting}
+to stop the existing container. The former is the container ID, the latter is the container name.
+
+If you want to re-enter the container, you need to start the container first. Just execute in \textsf{cmd}
+\begin{lstlisting}
+	docker start fenicsx-container
+\end{lstlisting}
+Then execute
+\begin{lstlisting}
+	docker exec -ti fenicsx-container /bin/bash -l
+\end{lstlisting}
+to enter the container.
+
+If the container is no longer needed, execute in \textsf{cmd}
+\begin{lstlisting}
+	docker rm fenicsx-container
+\end{lstlisting}
+to delete it directly.
+
+\section{Pulling Images}
+
+As FEniCSx is still in development, it is often necessary to pull images to use the latest version. Execute the following in \textsf{cmd}:
+\begin{lstlisting}
+	docker pull dolfinx/dolfinx
+\end{lstlisting}
+The system will pull the latest content locally. Then, execute
+\begin{lstlisting}
+	docker image list
+\end{lstlisting}
+to see all local image information.
+
+\section{Compiling Files}
+
+Download \href{https://docs.fenicsproject.org/dolfinx/main/python/_downloads/b94ac7be61dc3726ca331afd20f195d2/demo_poisson.py}{demo\_poisson.py} to \texttt{D:\textbackslash work-fenicsx}, enter the container, and execute in the \texttt{shared} folder:
+\begin{lstlisting}
+	python3 demo_poisson.py
+\end{lstlisting}
+to compile the file.
+
+\section{Installing Other Components}
+
+After running the above example, the system will display
+\begin{lstlisting}
+	pyvista is required to visualise the solution
+\end{lstlisting}
+This is because \texttt{pyvista} is not successfully installed. According to the answer on \href{https://fenicsproject.discourse.group/t/how-to-use-pyvista-in-docker-for-windows-10-user/6921}{fenicsproject.discourse.group}, the process of installing pyvista is summarized.
+
+First, switch sources. Copy \texttt{sources.list} to the \texttt{shared} folder:
+\begin{lstlisting}
+	cp /etc/apt/sources.list ~/shared/sources.list
+\end{lstlisting}
+Then change the contents of \texttt{sources.list} in \texttt{D:\textbackslash work-fenicsx}, see section \ref{sec:source}. Copy the modified file back:
+\begin{lstlisting}
+	cp ~/shared/sources.list /etc/apt/sources.list
+\end{lstlisting}
+
+Now start the installation, execute the following in order:
+\begin{lstlisting}
+	export PYVISTA_OFF_SCREEN=true
+	apt update
+	apt install -y --no-install-recommends libgl1-mesa-dev xvfb
+	pip3 install pyvista
+\end{lstlisting}
+to complete the installation. As stated in the forum, executing
+\begin{lstlisting}
+	python3 demo_poisson.py
+\end{lstlisting}
+again will result in a \texttt{u.png} file.
+
+If you need to use \href{https://github.com/ornladios/ADIOS2}{ADIOS2}, according to the \href{https://adios2.readthedocs.io/en/latest/setting_up/setting_up.html#docker}{documentation}, users can install it through Docker. Interested users can explore it on their own.
+
+\chapter{Installing FEniCSx in Anaconda}
+
+This part is mainly sourced from \href{https://github.com/FEniCS/dolfinx#conda}{Github}.
+
+\section{Installing WSL and Anaconda}
+
+Installing FEniCSx in Anaconda cannot be directly achieved on Windows 11, as some dependencies do not support the Windows operating system, so it still needs to be installed in WSL. Specific steps can be referred to in section \ref{sec:wsl.install}.
+
+After installing WSL, \href{https://www.anaconda.com/products/distribution#Downloads}{download} the Anaconda 64-Bit (x86) installation file \texttt{Anaconda3-*-Linux-x86\_64.sh}, where \texttt{*} represents time.
+
+After the download is completed, enter the directory where \texttt{Anaconda3-*-Linux-x86\_64.sh} is located in \textsf{bash}, copy it to the user folder:
+\begin{lstlisting}[language=bash]
+	cp Anaconda3-*-Linux-x86\_64.sh ~/
+\end{lstlisting}
+Enter the user folder and install:
+\begin{lstlisting}[language=bash]
+	cd ~/
+	bash Anaconda3-*-Linux-x86\_64.sh
+\end{lstlisting}
+Next, follow the system prompts to install, where there are several options. The first one is:
+\begin{lstlisting}
+	Do you accept the license terms?
+\end{lstlisting}
+This must be answered with \texttt{yes}. The second one is:
+\begin{lstlisting}
+	Anaconda3 will now be installed into this location:
+	/home/USERNAME/anaconda3
+	- Press ENTER to confirm the location
+	- Press CTRL-C to abort the installation
+	- Or specify a different location below
+\end{lstlisting}
+Here \texttt{USERNAME} is the username, it is recommended for users to install at this path. The third one is:
+\begin{lstlisting}
+	Do you wish the installer to initialize Anaconda3
+	by running conda init? [yes|no]
+\end{lstlisting}
+It's recommended to answer \texttt{yes}, otherwise users need to add the environment variable themselves. After the installation is complete, close and reopen \textsf{bash}, if \texttt{(base)} is displayed before the path, it means the installation was successful. If users do not wish for \texttt{base} to be enabled, execute the following in \textsf{bash}:
+\begin{lstlisting}[language=bash]
+	conda config --set auto_activate_base false
+\end{lstlisting}
+
+\subsection{Using Mirror Image}
+
+Due to the limitations of the network in mainland China, users can also access Anaconda's mirror images in mainland China, such as those from \href{https://mirrors.tuna.tsinghua.edu.cn/anaconda/archive/}{Tsinghua University} and \href{https://mirrors.pku.edu.cn/anaconda/archive/}{Peking University}, to download the installation files.
+
+After the installation is completed, open the \texttt{.condarc} file in the user directory and modify its content. For example, use \href{https://code.visualstudio.com/}{VS Code}\footnote{See details in Section \ref{sec:editor}}
+\begin{lstlisting}
+	code ~/.condarc
+\end{lstlisting}
+Copy the following content to the file\footnote{from Tsinghua University's \href{https://mirrors.tuna.tsinghua.edu.cn/help/anaconda/}{mirror}}
+\begin{lstlisting}
+	channels:
+	- defaults
+	show_channel_urls: true
+	default_channels:
+	- https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+	- https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r
+	- https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
+	custom_channels:
+	conda-forge: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+	msys2: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+	bioconda: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+	menpo: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+	pytorch: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+	pytorch-lts: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+	simpleitk: https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud
+\end{lstlisting}
+Save and exit, then execute the following command to clear the index cache to ensure that the index provided by the mirror site is used.
+\begin{lstlisting}
+	conda clean -i
+\end{lstlisting}
+
+\subsection{Using a Custom Virtual Environment}
+
+When using Anaconda, it defaults to the \texttt{base} environment, but users can also customize environments. In fact, the \href{https://github.com/FEniCS/dolfinx#conda}{FEniCSx installation manual} suggests installing in a virtual environment.
+
+To do this in \texttt{base}, execute
+\begin{lstlisting}
+	conda create -n fenicsx-env python=3.10
+\end{lstlisting}
+This means creating a virtual environment named fenicsx-env with python version 3.10 (the version can be unspecified). To activate the fenicsx-env virtual environment, execute
+\begin{lstlisting}
+	conda activate fenicsx-env
+\end{lstlisting}
+To exit the activated virtual environment, execute
+\begin{lstlisting}
+	conda deactivate
+\end{lstlisting}
+To delete the fenicsx-env virtual environment, execute
+\begin{lstlisting}
+	conda remove -n fenicsx-env --all
+\end{lstlisting}
+
+\section{Installing FEniCSx}
+
+After installing Anaconda, execute the following in \textsf{bash}:
+\begin{lstlisting}
+	conda create -n fenicsx-env
+	conda activate fenicsx-env
+	conda install -c conda-forge fenics-dolfinx mpich pyvista
+\end{lstlisting}
+to install.
+
+\end{document}
